@@ -27,12 +27,14 @@ An **n8n** workflow reads my followed artists from Spotify, looks up their shows
 
 ```
 ┌──────────────┐      GET /webhook/concerts?offset=0&limit=20&...      ┌──────────────────────────┐
-│  Angular app │ ────────────────────────────────────────────────────▶ │       n8n workflow       │
-│ :4200        │ ◀──────────────────────────────────────────────────── │       :5678              │
+│  Angular app │ ────────────────────────────────────────────────────► │       n8n workflow       │
+│ :4200        │ ◄──────────────────────────────────────────────────── │       :5678              │
 └──────────────┘          one page of concerts (JSON)                  │                          │
-                                                                       │  every day at 08:00:     │
-                                                                       │  Spotify ─▶ Ticketmaster │
-                                                                       │  ─▶ cache                │
+                                                                       │  every day at 08:00,     │
+                                                                       │  when the cache is over  │
+                                                                       │  24h old, or ?refresh=1: │
+                                                                       │  Spotify ─► Ticketmaster │
+                                                                       │  ─► cache                │
                                                                        └──────────────────────────┘
 ```
 
@@ -45,13 +47,15 @@ The workflow has two entry points:
 1. **Get your followed artists:** the Spotify node returns every artist you follow.
 2. **HTTP Request:** one Ticketmaster Discovery API call per artist (`/discovery/v2/events.json?keyword=<artist>&classificationName=music`).
 3. **Code in JavaScript:** keeps only events where the artist is actually performing, removes duplicates, picks a sharp 16:9 image and fills in a missing city or country from the venue's timezone and country code.
-4. **Save to cache:** stores the concerts in the workflow's static data.
+4. **Save to cache:** stores the concerts in the workflow's static data. When the refresh was started by the webhook, it also answers with the requested page.
 
 **Webhook (what the app calls)**
 
 1. **Webhook:** `GET /webhook/concerts`
-2. **Read cache:** if the cache is less than 24 hours old, it filters, sorts and cuts out the requested page right away.
-3. **Cache is fresh?** If not (first run, or n8n was off at 08:00), it runs the refresh above and then answers.
+2. **Read cache:** decides whether the cache can be used: it has concerts, they are less than 24 hours old, and the request has no `refresh` param. If so, it returns the requested page (filtered, sorted and cut out). If not (first run, n8n was off at 08:00, or `?refresh=1`), it returns `{ refresh: true }`.
+3. **Cache is fresh?** An If node that only routes what Read cache returned; it doesn't look at the cache itself.
+   - A page goes out of the *true* output, which isn't connected to anything, so the run ends and n8n answers with that page.
+   - `{ refresh: true }` goes out of the *false* output into the refresh above, and **Save to cache** answers at the end.
 
 ### The API
 
@@ -102,25 +106,33 @@ You need your **own Spotify app** and your **own Ticketmaster API key**. Neither
 1. Create an account at [developer.ticketmaster.com](https://developer.ticketmaster.com/).
 2. Open **My Apps**. Your app's **Consumer Key** is the API key.
 
-### 2. Create a Spotify app
+### 2. Start n8n
 
-1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create an app (choose **Web API**).
-2. Add the **OAuth Redirect URL** that n8n shows when you create the Spotify credential (step 3), for example `http://127.0.0.1:5678/rest/oauth2-credential/callback`.
-   Spotify doesn't accept `localhost` in redirect URIs, so open n8n at `http://127.0.0.1:5678` and use that address.
-3. Copy the app's **Client ID** and **Client Secret**.
+Spotify doesn't accept `localhost` in redirect URIs, and n8n builds its OAuth Redirect URL from its own settings (not from the address in your browser). So tell n8n to use `127.0.0.1`:
+
+```bash
+# macOS / Linux
+N8N_EDITOR_BASE_URL=http://127.0.0.1:5678 npx n8n
+```
+
+```powershell
+# Windows (PowerShell)
+$env:N8N_EDITOR_BASE_URL = "http://127.0.0.1:5678"; npx n8n
+```
+
+Open `http://127.0.0.1:5678` and create your n8n account.
+
+### 3. Create a Spotify app and connect it to n8n
+
+1. In n8n, create a new **Spotify OAuth2 API** credential. It shows an **OAuth Redirect URL**: `http://127.0.0.1:5678/rest/oauth2-credential/callback`. Copy it and keep the dialog open.
+2. In the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard), create an app (choose **Web API**) and add that URL as a **Redirect URI**.
+3. Copy the app's **Client ID** and **Client Secret** into the n8n credential and connect your Spotify account.
 
 > A new Spotify app runs in *development mode*: only the Spotify accounts you add under **User Management** in the dashboard can log in. That's fine for personal use.
 
-### 3. Set up the n8n workflow
+### 4. Build the n8n workflow
 
-1. Start n8n and open `http://127.0.0.1:5678`:
-
-   ```bash
-   npx n8n
-   ```
-
-2. Create a **Spotify OAuth2 API** credential with your Client ID and Secret, and connect your Spotify account.
-3. Build the workflow described in [How it works](#how-it-works). The code of the three Code nodes is in [`n8n/`](n8n/); paste each file into the node with the same name:
+1. Build the workflow described in [How it works](#how-it-works). The code of the three Code nodes is in [`n8n/`](n8n/); paste each file into the node with the same name:
 
    | Node | Settings |
    | --- | --- |
@@ -135,10 +147,10 @@ You need your **own Spotify app** and your **own Ticketmaster API key**. Neither
 
    Connect the Schedule Trigger to the Spotify node too, then Spotify → HTTP Request → Code in JavaScript → Save to cache.
 
-4. In the workflow's **Settings**, set the **Timezone** (e.g. `Europe/Athens`) so "08:00" and "today" mean your local time.
-5. **Save** and **Publish** the workflow.
+2. In the workflow's **Settings**, set the **Timezone** (e.g. `Europe/Athens`) so "08:00" and "today" mean your local time.
+3. **Save** and **Publish** the workflow.
 
-### 4. Run the app
+### 5. Run the app
 
 ```bash
 cd frontend
