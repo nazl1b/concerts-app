@@ -1,0 +1,135 @@
+:host {
+  display: block;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  /* No hover effect: the card isn't clickable, only the "Get tickets" button is. */
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--bg);
+}
+
+.media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.date-badge {
+  position: absolute;
+  top: 0;
+  left: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 54px;
+  padding: 8px 8px 6px;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.date-badge .day {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  line-height: 0.9;
+}
+
+.date-badge .month {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* Perforated line with two "notches" at the edges, like a torn ticket. */
+.perforation {
+  position: relative;
+  height: 0;
+  margin: 0 14px;
+  border-top: 2px dashed var(--border);
+}
+
+.perforation::before,
+.perforation::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+.perforation::before {
+  left: -23px;
+  clip-path: inset(0 0 0 50%);
+}
+
+.perforation::after {
+  right: -23px;
+  clip-path: inset(0 50% 0 0);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  padding: 14px 16px 18px;
+}
+
+.artist {
+  margin: 0;
+  font-size: 1.9rem;
+  line-height: 1;
+}
+
+/* The event name is cut off after 2 lines with "..." */
+.event {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.meta .icon {
+  margin-top: 2px;
+  color: var(--icon);
+}
+
+/* Space above the button, so it doesn't stick to the text. */
+.meta:last-of-type {
+  margin-bottom: 14px;
+}
+
+/* The button always sits at the bottom and spans the full width. */
+.tickets {
+  margin-top: auto;
+}

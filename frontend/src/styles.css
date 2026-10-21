@@ -1,0 +1,210 @@
+/* Global styles: apply to the whole app, inside every component. */
+
+/* The palette. Change a color here and it changes everywhere. */
+:root {
+  --nightmare-green: #121f0d;
+  --ceylanite: #30401c;
+  --basil-green: #526531;
+  --green-suede: #758850;
+  --green-plaza: #98a973;
+  --white-grape: #b9c798;
+  --kiwi-sorbet: #dce7be;
+
+  /* Shared sizes: nearly square corners everywhere */
+  --radius: 3px;
+  --radius-sm: 2px;
+  --control-height: 42px;
+  --page-padding: clamp(16px, 3vw, 48px); /* left/right page spacing */
+  --lift-offset: -2px;
+
+  /* Fonts */
+  --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  --font-body: 'Archivo', system-ui, sans-serif;
+}
+
+/* ---------- Themes ----------
+   Components only use these "roles" (--bg, --text, ...), never the hex values.
+   So for light mode we just give the same roles different values.
+   Every text/background pair has contrast above 4.5 (WCAG AA) in both themes.
+
+   Shadows. Rule: shadow ONLY on button hover (anything clickable),
+   and on panels that open over the page (dropdowns). Nothing else. */
+
+/* Dark (default) */
+:root {
+  --bg: var(--nightmare-green);
+  --surface: var(--ceylanite); /* cards, inputs, dropdowns */
+  --hover: color-mix(in srgb, var(--basil-green) 50%, var(--ceylanite));
+  --border: var(--basil-green);
+  --border-strong: var(--green-plaza); /* border on hover */
+  --text: var(--kiwi-sorbet); /* main text */
+  --text-muted: var(--white-grape); /* secondary text */
+  --text-subtle: var(--green-plaza); /* small labels on the page background */
+  --heading: #f3f7e8; /* lighter than kiwi, for headings */
+  --icon: var(--green-plaza);
+  --accent: var(--kiwi-sorbet); /* buttons, date badge, tagline */
+  --on-accent: var(--nightmare-green); /* text on top of the accent */
+  --lift-shadow: 4px 4px 0 var(--green-plaza); /* light-colored, so it also shows on top of cards */
+  --overlay-shadow: 6px 6px 0 rgb(0 0 0 / 0.45);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  color-scheme: dark;
+}
+
+/* Light: active when <html> has data-theme="light" (set by the Theme service) */
+:root[data-theme='light'] {
+  --bg: #eef3df;
+  --surface: #fafcf4;
+  --hover: #e8efd4;
+  --border: var(--green-plaza);
+  --border-strong: var(--green-suede);
+  --text: var(--nightmare-green);
+  --text-muted: var(--basil-green);
+  --text-subtle: var(--basil-green);
+  --heading: var(--nightmare-green);
+  --icon: var(--green-suede);
+  --accent: var(--ceylanite);
+  --on-accent: var(--kiwi-sorbet);
+  --lift-shadow: 4px 4px 0 var(--basil-green);
+  --overlay-shadow: 6px 6px 0 rgb(18 31 13 / 0.15);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg);
+  /* Very subtle "grain" like printed paper (SVG noise). */
+  background-image: var(--grain);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--heading);
+  font-family: var(--font-display);
+  font-weight: 400; /* Bebas Neue has only one weight */
+  letter-spacing: 0.02em;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ---------- Inputs & dropdown triggers ---------- */
+.control {
+  display: inline-flex;
+  align-items: center;
+  height: var(--control-height);
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: border-color 0.12s ease;
+}
+
+.control:hover {
+  border-color: var(--border-strong);
+}
+
+/* When active (typing or open): kiwi border */
+.control:focus-visible,
+.control.active {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.control::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--control-height);
+  padding: 0 20px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease,
+    translate 0.12s ease;
+}
+
+/* Hover: "lifts" with a shadow. Click: presses back down. Same for all buttons. */
+.btn:hover {
+  background: var(--heading);
+  border-color: var(--heading);
+  translate: var(--lift-offset) var(--lift-offset);
+  box-shadow: var(--lift-shadow);
+}
+
+.btn:active {
+  translate: 0 0;
+  box-shadow: none;
+}
+
+/* Disabled (e.g. while loading): no lift, no click. */
+.btn:disabled {
+  translate: 0 0;
+  box-shadow: none;
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Secondary button: dark with a border */
+.btn-secondary {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  background: var(--hover);
+  border-color: var(--border-strong);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ---------- Icons (inline SVG) ---------- */
+.icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}

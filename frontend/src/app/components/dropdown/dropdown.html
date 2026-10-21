@@ -1,0 +1,17 @@
+<button
+  type="button"
+  class="control trigger"
+  [class.active]="isOpen()"
+  [attr.aria-expanded]="isOpen()"
+  (click)="toggle()"
+>
+  <!-- Only content with the dropdownIcon attribute goes here (e.g. <svg dropdownIcon ...>). -->
+  <ng-content select="[dropdownIcon]" />
+  <span class="label">{{ label() }}</span>
+  <svg class="icon chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+</button>
+
+<!-- All other content from the parent is shown here. -->
+<div class="panel" [class.open]="isOpen()" [class.end]="align() === 'end'">
+  <ng-content />
+</div>

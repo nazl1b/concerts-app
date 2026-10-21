@@ -1,0 +1,51 @@
+/* Two-position switch: a frame with two buttons. The active position is filled with the accent.
+   No shadow and no motion: it's a choice, not an action. */
+.switch {
+  display: inline-flex;
+  gap: 2px;
+  height: var(--control-height);
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+button:hover:not(.active) {
+  color: var(--text);
+}
+
+button.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: default;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+}

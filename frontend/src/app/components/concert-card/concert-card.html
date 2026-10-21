@@ -1,0 +1,38 @@
+<article class="card">
+  <div class="media">
+    <img [src]="concert().image" [alt]="concert().artist" loading="lazy" />
+    <div class="date-badge">
+      <span class="day">{{ concert().date | date: 'd' }}</span>
+      <span class="month">{{ concert().date | date: 'MMM' }}</span>
+    </div>
+  </div>
+
+  <!-- The ticket's "perforated" line -->
+  <div class="perforation" aria-hidden="true"></div>
+
+  <div class="body">
+    <h3 class="artist">{{ concert().artist }}</h3>
+    @if (concert().event !== concert().artist) {
+      <p class="event">{{ concert().event }}</p>
+    }
+
+    <p class="meta">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
+      {{ concert().date | date: 'EEEE, MMMM d' }} · {{ concert().time.slice(0, 5) }}
+    </p>
+    <p class="meta">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
+      <span>
+        @if (concert().venue) {
+          {{ concert().venue }},
+        }
+        {{ concert().city }}, {{ concert().country }}
+      </span>
+    </p>
+
+    <a class="btn tickets" [href]="concert().url" target="_blank" rel="noopener">
+      Get tickets
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
+    </a>
+  </div>
+</article>

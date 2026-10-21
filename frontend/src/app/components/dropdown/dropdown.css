@@ -1,0 +1,67 @@
+:host {
+  position: relative;
+  display: inline-block;
+}
+
+.trigger {
+  gap: 10px;
+  cursor: pointer;
+}
+
+/* Long names (e.g. "Las Vegas, United States Of America") are cut off with "..." */
+.label {
+  max-width: 220px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chevron {
+  color: var(--text-muted);
+  transition: rotate 0.15s ease;
+}
+
+.trigger.active .chevron {
+  rotate: 180deg;
+  color: var(--accent);
+}
+
+/* The panel is always there, but hidden until it gets the .open class (for a smooth animation). */
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  min-width: 250px;
+  padding: 6px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--overlay-shadow);
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 -6px;
+  transition:
+    opacity 0.12s ease,
+    translate 0.12s ease,
+    visibility 0.12s;
+}
+
+.panel.end {
+  left: auto;
+  right: 0;
+}
+
+.panel.open {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+}
+
+/* An "invisible bridge" above the panel, so the mouse doesn't leave the dropdown when crossing the gap. */
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: -10px 0 auto;
+  height: 10px;
+}

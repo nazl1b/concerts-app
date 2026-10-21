@@ -1,0 +1,163 @@
+<header class="top">
+  <div class="hero">
+    <h1>My Concerts</h1>
+    <p class="tagline">Upcoming shows from the artists I follow on Spotify</p>
+  </div>
+  <app-theme-toggle />
+</header>
+
+<!-- The toolbar shows once the first page has arrived, and stays while other pages load. -->
+@if (latest(); as current) {
+  <div class="toolbar">
+    <div class="search">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+      <input
+        #searchBox
+        class="control"
+        type="search"
+        placeholder="Search artist..."
+        aria-label="Search artist"
+        [value]="search()"
+        (input)="search.set(searchBox.value)"
+      />
+    </div>
+
+    <!-- #locationDd = a "reference" to the dropdown, so we can tell it to close after a selection. -->
+    <app-dropdown #locationDd [label]="locationLabel()">
+      <svg dropdownIcon class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
+      <div class="menu">
+        <button type="button" class="menu-item" [class.selected]="!country()" (click)="selectCountry('', 0, locationDd)">
+          <span>Anywhere</span>
+          <span class="menu-count">{{ current.all }}</span>
+        </button>
+        @for (c of current.countries; track c.name) {
+          <button
+            type="button"
+            class="menu-item"
+            [class.selected]="country() === c.name && !city()"
+            [class.expanded]="country() === c.name"
+            (click)="selectCountry(c.name, c.cities.length, locationDd)"
+          >
+            <span>{{ c.name }}</span>
+            <span class="menu-count">{{ c.count }}</span>
+          </button>
+
+          <!-- Cities appear under the selected country (if it has more than one). -->
+          @if (country() === c.name && c.cities.length > 1) {
+            @for (ci of c.cities; track ci.name) {
+              <button
+                type="button"
+                class="menu-item sub"
+                [class.selected]="city() === ci.name"
+                (click)="selectCity(ci.name, locationDd)"
+              >
+                <span>{{ ci.name }}</span>
+                <span class="menu-count">{{ ci.count }}</span>
+              </button>
+            }
+          }
+        }
+      </div>
+    </app-dropdown>
+
+    <app-dropdown #periodDd [label]="periodLabel()">
+      <svg dropdownIcon class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
+      <div class="menu">
+        @for (p of periods; track p.value) {
+          <button
+            type="button"
+            class="menu-item"
+            [class.selected]="period() === p.value"
+            (click)="selectPeriod(p.value, periodDd)"
+          >
+            {{ p.label }}
+          </button>
+        }
+      </div>
+    </app-dropdown>
+
+    <app-dropdown #sortDd [label]="sortLabel()" align="end">
+      <svg dropdownIcon class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4" /></svg>
+      <div class="menu">
+        @for (s of sorts; track s.value) {
+          <button
+            type="button"
+            class="menu-item"
+            [class.selected]="sort() === s.value"
+            (click)="selectSort(s.value, sortDd)"
+          >
+            {{ s.label }}
+          </button>
+        }
+      </div>
+    </app-dropdown>
+
+    @if (hasActiveFilters()) {
+      <button type="button" class="btn btn-secondary" (click)="clearFilters()">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        Clear
+      </button>
+    }
+
+    <span class="count">
+      <strong>{{ current.total }}</strong> of {{ current.all }} shows
+    </span>
+  </div>
+
+  @if (page.error()) {
+    <div class="state">
+      <p>Couldn't load concerts. Is n8n running?</p>
+      <button class="btn" (click)="page.reload()">Try again</button>
+    </div>
+  }
+
+  <!-- While new filters load, the old results fade a little. -->
+  <div class="results" [class.refreshing]="page.isLoading() && offset() === 0">
+    @for (group of groups(); track group.key) {
+      <section>
+        <h2 class="group-title">
+          <span>
+            @if (byArtist()) {
+              {{ group.key }}
+            } @else {
+              {{ group.key + '-01' | date: 'MMMM y' }}
+            }
+          </span>
+          <span class="group-line" aria-hidden="true"></span>
+          <span class="group-count">
+            {{ group.total }} {{ group.total === 1 ? 'show' : 'shows' }}
+          </span>
+        </h2>
+        <div class="grid">
+          @for (concert of group.concerts; track concert.artist + concert.url) {
+            <app-concert-card [concert]="concert" />
+          }
+        </div>
+      </section>
+    } @empty {
+      <div class="state">
+        <p>No concerts match your filters.</p>
+        <button class="btn" (click)="clearFilters()">Clear filters</button>
+      </div>
+    }
+  </div>
+
+  @if (hasMore() && !page.error()) {
+    <div class="load-more">
+      <button class="btn" [disabled]="page.isLoading()" (click)="loadMore()">
+        {{ page.isLoading() ? 'Loading...' : 'Load more' }}
+      </button>
+      <p>Showing {{ loaded().length }} of {{ current.total }}</p>
+    </div>
+  }
+} @else if (page.error()) {
+  <div class="state">
+    <p>Couldn't load concerts. Is n8n running?</p>
+    <button class="btn" (click)="page.reload()">Try again</button>
+  </div>
+} @else {
+  <div class="state">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>Loading concerts...</p>
+  </div>
+}
